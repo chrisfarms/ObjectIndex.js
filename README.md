@@ -69,10 +69,10 @@ Ok, ok, so Object*Index* is stretching it a bit at the moment, right now each qu
 I just needed the query part of this first to get it working, the next part is to work on increasing performance of the queries by creating an index and word stemmer so acts like full-text search. That said performance isn't actually too bad for <10K records. Please fork and play with trying to get the graph as low as you can in test.html
 
 
-What on earth is test.html!
----------------------------
+What on earth is test.html about
+--------------------------------
 
-Try to avert your eyes from test.html, I just wanted to write a little script so I can test and evaluate performance. If you open it in a browser it will continually run a tiny set of basic test queries over an ever increasing set of records, and draw a little graph of how long it took, the aim of the game is to keep those numbers down.
+Try to avert your eyes from test.html, I just wanted to write a little script so I can test and evaluate performance. If you open it in a browser it will run a tiny set of basic test queries over an ever increasing set of records, and draw a little graph of how long it took as the data set grows, the aim of the game is to keep those numbers down.
 
 
 Browser Support
