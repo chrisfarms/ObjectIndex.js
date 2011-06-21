@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>jsarraysearch</title>
+    <style>
+      body {
+        font-family: arial;
+        font-size:12px;
+      }
+      #status {
+        margin-bottom:20px;
+      }
+    </style>
+  </head>
+  <body id="jsarraysearch">
+    <div id="chart_div"></div>
+    <script src="https://www.google.com/jsapi"></script>
+    <script>
+      google.load("visualization", "1", {packages:["corechart"]});
+      var CHARTING_READY = false;
+      google.setOnLoadCallback(function(){
+        CHARTING_READY = true;
+      });
+      var CHART;
+      function getChart(){
+        if(CHART)
+          return CHART;
+        CHART = new google.visualization.LineChart(document.getElementById('chart_div'));
+        return CHART;
+      }
+      var CHART_DATA = [];
+      function updateChart(records) {
+        if(!CHARTING_READY){
+          console.log("chart not ready to draw");
+          return;
+        }
+        var chart = getChart();
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'records');
+        data.addColumn('number', 'time');
+        data.addRows(CHART_DATA.length);
+        for(var i=0; i<CHART_DATA.length; i++){
+          data.setValue(i, 0, CHART_DATA[i][0].toString());
+          data.setValue(i, 1, CHART_DATA[i][1]);
+        }
+        chart.draw(data, {width: 600, height: 300, title: 'Time to run query (smaller is better)',legend:'none'});
+      }
+      function addChartData(x,y){
+        CHART_DATA.push([x,y]);
+        updateChart();
+      }
+    </script>
+    <div id="status"></div>
+    <div id="output"></div>
+    
+    <script src="objectIndex.js"></script>
+    <script>
+      
+      function repr(v){
+        return JSON.stringify(v,null,4);
+      }
+      function fail(reason){
+          print(reason);
+          throw new Error(reason);
+      }
+      function assert(condition, reason){
+          if(!condition)
+              fail(reason);
+      }
+      function assertContains(list,item){
+          if(list.indexOf(item)<0)
+              assert("expected \n"+repr(list)+"\n to contain \n"+repr(item));
+      }
+      function assertContents(list1, list2){
+          assert(list1.length===list2.length, "expected length of \n"+repr(list1)+"\n to eq length of \n"+repr(list2));
+          for(var i=0; i<list1.length; i++){
+              assertContains(list2, list1[i]);
+          }
+      }
+      function print(msg){
+        document.getElementById('output').innerHTML += '<br>'+msg;
+      }
+      function status(msg){
+        document.getElementById('status').innerHTML = msg;
+      }
+      // simple tests
+      function basicTest(records){
+          var results, index;
+
+          index = new ObjectIndex({
+            records: records,
+            fields: ['name','content','someProperty', 'someOtherProperty', 'colors', 'number']
+          });
+
+
+          results = index.query('wolverine');
+          assertContents(results,[records[0],records[1]]);
+            
+          results = index.query('colors:red');
+          assertContents(results,[records[0],records[3]]);
+          
+          results = index.query('colors:red wolverine');
+          assertContents(results,[records[1]]);
+          
+          results = index.query('colors:itchybeard wolverine');
+          assertContents(results,[]);
+          
+          results = index.query('oiwhegohiw ewgoihgi');
+          assertContents(results,[]);
+          
+          results = index.query('someProperty:important');
+          assertContents(results,[records[1]]);
+          
+          results = index.query('number:1');
+          assertContents(results,[]);
+          
+          results = index.query('number:123');
+          assertContents(results,[records[3]]);
+      }
+      // test data
+      var data = [
+        {name:'thing0', content:'wolverine', someProperty: 'zzz', colors: ['red', 'blue']},
+        {name:'thing1', content:'wolverine prfessorX', someProperty: 'this is important', number: 123, colors: ['green']},
+        {name:'thing2', content:'gambit', someOtherProperty: 'important info here too', colors: ['red', 'green', 'yellow']}
+      ];
+      // run basic test
+      basicTest(data);
+      // a horrible test
+      function noiseTest(){
+        // run the basicTest with an extra million
+        // records in the list to see how badly it performs
+        // with the extra noise
+        var fields = ['name','content','someProperty', 'someOtherProperty', 'colors'];
+        var generateRandomWord = function(){
+          var w = Math.round(Math.random()*100000000).toString(36);
+          return w.length<4 ? "" : w;
+        };
+        var generateRandomSentance = function(){
+          var wordCount = Math.round(Math.random()*500);
+          var s = "";
+          for(var i=0; i<wordCount; i++)
+            s += generateRandomWord() + " ";
+          return s;
+        };
+        var generateSemiRandomRecord = function(){
+          var o = {};
+          for(var i=0; i<fields.length; i++){
+            var v = generateRandomSentance();
+            if(fields[i]=="colors"){
+              v = v.split(' ');
+            }
+            o[fields[i]] = v;
+          }
+          return o;
+        };
+        var batch_size = 50;
+        var created = 0;
+        var generateSomeRecords = function(cb){
+          var timer = setTimeout(function(){
+            for(var i=0; i<batch_size; i++)
+              data.push(generateSemiRandomRecord());
+            status(data.length+' records in list');
+            created += batch_size;
+            if((created % 500) === 0){ // every x records run the test
+              cb();
+            }else{
+              // stop after 10K before I run out of RAM
+              // or the GC starts hitting me in the face
+              if(created<10000)
+                generateSomeRecords(cb);
+            }
+          },0);          
+        };
+        var runTestAndPlotGraph = function(){
+          generateSomeRecords(function(){
+            // run the test a few times to get a mean
+            var i,t,s,times = [];
+            for(i=0; i<5; i++){
+              t = new Date();
+              status("running basicTest() "+i+'x');
+              basicTest(data);
+              s = (((new Date())-t)/1000);
+              times.push(s);
+            }
+            // calc naive mean
+            var sum = 0;
+            for(i=0; i<times.length; i++){
+              sum += times[i];
+            }
+            addChartData(data.length, sum / times.length);
+            runTestAndPlotGraph(); // go round again
+          });
+        };
+        
+        runTestAndPlotGraph();
+      }
+      // run the noise test
+      noiseTest();
+
+    </script>
+  </body>
+</html>
