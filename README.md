@@ -61,6 +61,11 @@ results = index.query('name:peter');
 ]
 ```
 
+Demo
+----
+
+You can [play with the example above at here](http://chrisfarms.github.com/objectindex/example.html)
+
 Other property types
 --------------------
 
