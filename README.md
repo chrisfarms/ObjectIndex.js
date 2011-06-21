@@ -122,7 +122,7 @@ Lies, lies lies
 
 Ok, ok, so Object*Index* is stretching it a bit at the moment, right now each query is run over all the original records, no "index" is actually created just yet.
 
-I just needed the query part of this first to get it working, the next part is to work on increasing performance of the queries by creating an index and word stemmer so acts like full-text search. That said performance isn't actually too bad for <10K records. Please fork and play with trying to get the graph as low as you can in test.html
+I just needed the query part of this first to get it working, the next part is to work on increasing performance of the queries by creating an index and word stemmer so acts like full-text search. That said performance isn't actually too bad for <10K records. Please fork and play with trying to get the graph as low as you can in [test.html](file://localhost/Users/chrisfarms/Repositories/objectindex/test.html)
 
 
 What on earth is test.html about
