@@ -1,6 +1,5 @@
 
 String.prototype.tokens = function (prefix, suffix) {
-    // tokens.js
     // 2010-02-23
     // (c) 2006 Douglas Crockford
     var c;                      // The current character.
