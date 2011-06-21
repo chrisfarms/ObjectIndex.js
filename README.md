@@ -61,6 +61,57 @@ results = index.query('name:peter');
 ]
 ```
 
+Other property types
+--------------------
+
+So far we have just queried on string data, but you can also query against numeric and sub-array properties too. 
+
+```javascript
+
+var data = [
+  {id: 1, name:'Banana', tags:['yellow','bendy]},
+  {id: 2, name:'Apple', tags:['green','round]}
+];
+
+var index = new ObjectIndex({
+    records: data,
+    fields: ['id','tags']
+});
+
+results = index.query('tags:yellow');
+=> [
+  {id: 1, name:'Banana', tags:['yellow','bendy]}
+]
+```
+
+Records that require getters
+----------------------------
+
+If your data collection is made up of more complex objects, you might find it useful to have the index fetch the propperty values via a getter method. Here's a slightly more complex example to show how this might work.
+
+```javascript
+var MyRecord = function(defaults){   // a simple record class
+  this.data = defaults;
+}
+MyRecord.prototype.get = function(key){ // this method will be used to fetch the properties
+  return this.data[key];
+}
+
+var peter = new MyRecord({name:'Peter'});
+var jane = new MyRecord({name:'Jane'});
+
+var data = [peter, jane];
+
+var index = new ObjectIndex({
+    records: data,
+    fields: ['name'],        // <-- each of these fields
+    getter: 'get'            // <-- will be requested via this method
+});
+
+results = index.query('Jane');
+=> [jane]
+```
+
 Lies, lies lies
 ---------------
 

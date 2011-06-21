@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-    <title>jsarraysearch</title>
+    <title>ObjectIndex.js Performance</title>
     <style>
       body {
         font-family: arial;
@@ -70,7 +70,7 @@
       }
       function assertContains(list,item){
           if(list.indexOf(item)<0)
-              assert("expected \n"+repr(list)+"\n to contain \n"+repr(item));
+              fail("expected \n"+repr(list)+"\n to contain \n"+repr(item));
       }
       function assertContents(list1, list2){
           assert(list1.length===list2.length, "expected length of \n"+repr(list1)+"\n to eq length of \n"+repr(list2));
@@ -98,10 +98,10 @@
           assertContents(results,[records[0],records[1]]);
             
           results = index.query('colors:red');
-          assertContents(results,[records[0],records[3]]);
+          assertContents(results,[records[0],records[2]]);
           
           results = index.query('colors:red wolverine');
-          assertContents(results,[records[1]]);
+          assertContents(results,[records[0]]);
           
           results = index.query('colors:itchybeard wolverine');
           assertContents(results,[]);
@@ -116,7 +116,10 @@
           assertContents(results,[]);
           
           results = index.query('number:123');
-          assertContents(results,[records[3]]);
+          assertContents(results,[records[1]]);
+          
+          results = index.query('name:thing1');
+          assertContents(results,[records[1]]);
       }
       // test data
       var data = [
@@ -196,7 +199,7 @@
         runTestAndPlotGraph();
       }
       // run the noise test
-      noiseTest();
+      // noiseTest();
 
     </script>
   </body>

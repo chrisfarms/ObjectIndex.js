@@ -249,6 +249,11 @@ String.prototype.tokens = function (prefix, suffix) {
 
 var ObjectIndex = (function(){
   
+  // poorman's is-array test
+  var isArray = function(o){
+    return o.constructor == Array;
+  };
+  
   var Index = function(config){
     // the list of valid search fields 
     this.fields = config.fields;
@@ -281,7 +286,7 @@ var ObjectIndex = (function(){
     var self = this;
     return function(record){
       var value = self.getRecordValue(record,key);
-      if(value && value.indexOf){ // FIXME: poormans isArray
+      if(value && isArray(value)){ 
         return value.indexOf(token.value)>=0;
       }else if(token.type=="number"){
         return value===token.value;

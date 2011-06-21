@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>ObjectIndex Example</title>
+    <style>
+      body {
+        font-family: arial;
+        font-size:14px;
+      }
+      #status {
+        margin-bottom:20px;
+      }
+    </style>
+    <script src="objectindex.js"></script>
+    
+  </head>
+  <body id="jsarraysearch">
+    <h1>ObjectIndex Example</h1>
+    <h3>The Data</h3>
+    <pre id="dataset"></pre>
+    <h3>The Query</h3>
+    <label>Enter a query to make against the above dataset. The results will display below as you type.</label><br>
+    <input id="query" type="text" size="50">
+    <h3>The Results</h3>
+    <div id="results"></div>
+    
+    <script>
+      
+      // just a little print function, not important
+      function draw(id,msg){
+        document.getElementById(id).innerHTML = msg;
+      }
+      
+      // (1) create a dataset
+      var data = [
+          {name:'Peter', email:'pete@example.com', description: 'He has a ball that is red'},
+          {name:'Jane', email:'jane@example.com', description: 'Jane likes Peter'},
+          {name:'Paul', email:'paul@example.com', description: 'Paul has a red ball'}
+      ];
+      
+      // draw the data on the screen for this example
+      draw('dataset', JSON.stringify(data,null,4));
+      
+      // (2) setup the index
+      var index = new ObjectIndex({
+          records: data,
+          fields: ['name','email','description']
+      });
+      
+      // (3) make a query on keypress
+      function onSearch(queryText){
+        var results = index.query(queryText); // important bit 
+        var output = [];
+        for(var i=0; i<results.length; i++){
+          output.push("Found: "+results[i].name);
+        }
+        draw('results', output.join('<br>'));
+      }
+      
+      // add a handler to the input box, you can ignore this
+      var inp = document.getElementById('query');
+      inp.addEventListener('keyup', function(){
+        onSearch(inp.value);
+      },false);
+      
+    </script>
+  </body>
+</html>
