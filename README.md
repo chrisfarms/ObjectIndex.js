@@ -5,7 +5,7 @@ ObjectIndex.js
 Overview
 --------
 
-objectindex is a little wrapper around Arrays of Objects that provides you with the ability to search through the array using a text query much like Gmail's search filters.
+ObjectIndex is a little wrapper around Arrays of Objects that provides you with the ability to search through the array using a text query much like Gmail's search filters.
 
 Examples
 --------
