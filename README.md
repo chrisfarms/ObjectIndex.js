@@ -14,9 +14,9 @@ It's easist to explain with an example, so Say you have a collection of Objects 
 
 ```javascript
 var data = [
-    {name:'Peter', email:'pete@example.com', description: 'He has a ball that is red'},
-    {name:'Jane', email:'jane@example.com', description: 'Jane likes Peter'},
-    {name:'Paul', email:'paul@example.com', description: 'Paul has a red ball'}
+    {name:'Peter', email:'pete@example.com', description: 'He has a ball that is red', dob: new Date('1980-01-01')},
+    {name:'Jane', email:'jane@example.com', description: 'Jane likes Peter', dob: new Date('1990-03-01')},
+    {name:'Paul', email:'paul@example.com', description: 'Paul has a red ball', dob: new Date('1991-01-12')}
 ];
 ```
     
@@ -61,6 +61,26 @@ results = index.query('name:peter');
 ]
 ```
 
+Dates
+-----
+
+If the property you are querying is a Date then you should specify your dates in the form YYYY-MM-DD or YYYY-MM or just YYYY. It'll happily parse most date/time formats  but to be safe stick to international formats (with year first).
+
+Ranges
+------
+
+You can use `[` square brackets `]` to denote a range of values between the `TO` operator, which will work for numeric and date property filters.
+
+Since querying against an exact date-time is very specific, you will more than likely want to use a range when using date queries. To perform queries over a date range you use the syntax `[YYYY-MM-DD TO YYYY-MM-DD]` ranges will work on numeric properties too.
+
+```javascript
+results = index.query('email:example.com dob:[1985-01-01 TO 1995-01-01]');
+=> [
+  {name:'Jane', email:'jane@example.com', description: 'Jane likes Peter', dob: Date('1990-03-01')},
+  {name:'Paul', email:'paul@example.com', description: 'Paul has a red ball', dob: Date('1991-01-12')}
+]
+```
+
 Demo
 ----
 
@@ -69,7 +89,7 @@ You can [play with the example above at here](http://chrisfarms.github.com/objec
 Other property types
 --------------------
 
-So far we have just queried on string data, but you can also query against numeric and sub-array properties too. 
+So far we have just queried on string data, but you can also query against numeric date and sub-array properties too. See the next section for date & range queries.
 
 ```javascript
 

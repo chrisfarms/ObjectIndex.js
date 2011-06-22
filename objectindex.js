@@ -40,9 +40,10 @@ var ObjectIndex = (function(){
   // return a filter function that will do an exact match on the
   // property value
   Index.prototype.propertyFilter = function(key, keyword){
+    keyword = keyword.replace(/^"|"$/g,'');
     var self = this;
     return function(record){
-      var value = self.getRecordValue(record,key);
+      var d1,d2,rangeStrings,value = self.getRecordValue(record,key);
       if(!value)
         return false;
       if(isArray(value)){ 
@@ -54,17 +55,38 @@ var ObjectIndex = (function(){
         return value.indexOf(keyword)>=0;
       // if we're comaring a number the convert
       }else if(isNumber(value)){
-        return value===parseInt(keyword,10);
+        // check for range
+        if(keyword[0]=="["){
+          rangeStrings = keyword.slice(1,keyword.length-1).split('TO');
+          // if only one number, then it is a "from 0 TO X" search
+          if(rangeStrings.length==1 || !rangeStrings[0])
+            d1 = 0;
+          else
+            d1 = parseInt(rangeStrings[0],10);
+          d2 = parseInt(rangeStrings[1],10);
+          return value >= d1 && value <= d2;
+        // exact match
+        }else{
+          return value===parseInt(keyword,10);  
+        }
       // if it's a date we're comaring against parse Date
-      }else if(value.getTime || keyword[0]=="["){
-        var d1,d2,dateStrings = keyword.slice(1,keyword.length-1).split('TO');
-        // if only one date, then it is a "from 0 TO X" search
-        if(dateStrings.length==1 || !dateStrings[0])
-          d1 = new Date('1970-01-01');
-        else
-          d1 = new Date(dateStrings[0]);
-        d2 = new Date(dateStrings[1]);
-        return value > d1 && value < d2;
+      }else if(value.getTime){
+        // date range
+        if(keyword[0]=="["){
+          rangeStrings = keyword.slice(1,keyword.length-1).split('TO');
+          // if only one date, then it is a "from 0 TO X" search
+          if(rangeStrings.length==1 || !rangeStrings[0])
+            d1 = new Date('1970-01-01');
+          else
+            d1 = new Date(rangeStrings[0]);
+          d2 = new Date(rangeStrings[1]);
+          return value >= d1 && value <= d2;
+        // exact match   
+        }else{
+          d1 = new Date(keyword);
+          return value.getTime() == d1.getTime();
+        }
+
       // otherwise treat as a free text search
       }else{
         var matcher = new RegExp(keyword,'i');
@@ -103,8 +125,8 @@ var ObjectIndex = (function(){
   };
   
   Index.prototype.filterMatchers = [
-    {matcher: /^(\w+):(\w+|"[^"]+"|\[[^\]]+\])/, name:'propertyFilter'},
-    {matcher: /^(\w+)/, name:'phraseFilter'}
+    {matcher: /^([\w_]+):([\w_\-£$]+|"[^"]+"|\[[^\]]+\])/, name:'propertyFilter'},
+    {matcher: /^([\w_\-£$]+)/, name:'phraseFilter'}
   ];
   
   Index.prototype.consumeBuffer = function(buffer,fns){

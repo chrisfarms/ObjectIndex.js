@@ -138,6 +138,13 @@
           results = index.query('number:123');
           assertContents(results,[records[1]]);
           
+          // numberic range
+          status("numeric range test");
+          results = index.query('number:[100 TO 200]');
+          assertContents(results,[records[1]]);
+          results = index.query('number:[1 TO 100]');
+          assertContents(results,[]);
+          
           // name field only
           status("name only test");
           results = index.query('name:thing1');
@@ -147,6 +154,15 @@
           status("date test");
           results = index.query('created:[TO 2011-02-01]');
           assertContents(results,[records[0]]);
+          results = index.query('created:[2011-02-01 TO 2011-03-28]');
+          assertContents(results,[records[1],records[2]]);
+          
+          // bad date syntax
+          status("bad date test");
+          results = index.query('created:[TO 2011-XX-01]');
+          assertContents(results,[]);
+          results = index.query('created:[TO 2011-01-01');
+          assertContents(results,[]);
           
           status("basic tests passed ok");
       }
