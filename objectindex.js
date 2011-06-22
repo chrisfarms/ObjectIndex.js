@@ -105,7 +105,8 @@ var ObjectIndex = (function(){
       var i,key;
       for(i=0; i<self.fields.length; i++){
         key = self.fields[i];
-        if( matcher.test(self.getRecordValue(record,key)) ){
+        var value = self.getRecordValue(record,key);
+        if(value && typeof value == 'string' && matcher.test(value)){
           return true;
         }
       }
@@ -125,8 +126,8 @@ var ObjectIndex = (function(){
   };
   
   Index.prototype.filterMatchers = [
-    {matcher: /^([\w_]+):([\w_\-£$]+|"[^"]+"|\[[^\]]+\])/, name:'propertyFilter'},
-    {matcher: /^([\w_\-£$]+)/, name:'phraseFilter'}
+    {matcher: /^([\w_]+):([\w_\-£\.$]+|"[^"]+"|\[[^\]]+\])/, name:'propertyFilter'},
+    {matcher: /^([\w_\-£\.$]+)/, name:'phraseFilter'}
   ];
   
   Index.prototype.consumeBuffer = function(buffer,fns){
