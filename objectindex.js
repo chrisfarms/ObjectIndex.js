@@ -1,257 +1,14 @@
 
-String.prototype.tokens = function (prefix, suffix) {
-    // 2010-02-23
-    // (c) 2006 Douglas Crockford
-    var c;                      // The current character.
-    var from;                   // The index of the start of the token.
-    var i = 0;                  // The index of the current character.
-    var length = this.length;
-    var n;                      // The number value.
-    var q;                      // The quote character.
-    var str;                    // The string value.
-
-    var result = [];            // An array to hold the results.
-
-    var make = function (type, value) {
-
-// Make a token object.
-
-        return {
-            type: type,
-            value: value,
-            from: from,
-            to: i
-        };
-    };
-
-// Begin tokenization. If the source string is empty, return nothing.
-
-    if (!this) {
-        return;
-    }
-
-// If prefix and suffix strings are not provided, supply defaults.
-
-    if (typeof prefix !== 'string') {
-        prefix = '<>+-&';
-    }
-    if (typeof suffix !== 'string') {
-        suffix = '=>&:';
-    }
-
-
-// Loop through this text, one character at a time.
-
-    c = this.charAt(i);
-    while (c) {
-        from = i;
-
-// Ignore whitespace.
-
-        if (c <= ' ') {
-            i += 1;
-            c = this.charAt(i);
-
-// name.
-
-        } else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
-            str = c;
-            i += 1;
-            for (;;) {
-                c = this.charAt(i);
-                if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-                        (c >= '0' && c <= '9') || c === '_') {
-                    str += c;
-                    i += 1;
-                } else {
-                    break;
-                }
-            }
-            result.push(make('keyword', str));
-
-// number.
-
-// A number cannot start with a decimal point. It must start with a digit,
-// possibly '0'.
-
-        } else if (c >= '0' && c <= '9') {
-            str = c;
-            i += 1;
-
-// Look for more digits.
-
-            for (;;) {
-                c = this.charAt(i);
-                if (c < '0' || c > '9') {
-                    break;
-                }
-                i += 1;
-                str += c;
-            }
-
-// Look for a decimal fraction part.
-
-            if (c === '.') {
-                i += 1;
-                str += c;
-                for (;;) {
-                    c = this.charAt(i);
-                    if (c < '0' || c > '9') {
-                        break;
-                    }
-                    i += 1;
-                    str += c;
-                }
-            }
-
-// Look for an exponent part.
-
-            if (c === 'e' || c === 'E') {
-                i += 1;
-                str += c;
-                c = this.charAt(i);
-                if (c === '-' || c === '+') {
-                    i += 1;
-                    str += c;
-                    c = this.charAt(i);
-                }
-                if (c < '0' || c > '9') {
-                    make('number', str).error("Bad exponent");
-                }
-                do {
-                    i += 1;
-                    str += c;
-                    c = this.charAt(i);
-                } while (c >= '0' && c <= '9');
-            }
-
-// Make sure the next character is not a letter.
-
-            if (c >= 'a' && c <= 'z') {
-                str += c;
-                i += 1;
-                make('number', str).error("Bad number");
-            }
-
-// Convert the string value to a number. If it is finite, then it is a good
-// token.
-
-            n = +str;
-            if (isFinite(n)) {
-                result.push(make('number', n));
-            } else {
-                make('number', str).error("Bad number");
-            }
-
-// string
-
-        } else if (c === '\'' || c === '"') {
-            str = '';
-            q = c;
-            i += 1;
-            for (;;) {
-                c = this.charAt(i);
-                if (c < ' ') {
-                    make('phrase', str).error(c === '\n' || c === '\r' || c === '' ?
-                        "Unterminated string." :
-                        "Control character in string.", make('', str));
-                }
-
-// Look for the closing quote.
-
-                if (c === q) {
-                    break;
-                }
-
-// Look for escapement.
-
-                if (c === '\\') {
-                    i += 1;
-                    if (i >= length) {
-                        make('phrase', str).error("Unterminated string");
-                    }
-                    c = this.charAt(i);
-                    switch (c) {
-                    case 'b':
-                        c = '\b';
-                        break;
-                    case 'f':
-                        c = '\f';
-                        break;
-                    case 'n':
-                        c = '\n';
-                        break;
-                    case 'r':
-                        c = '\r';
-                        break;
-                    case 't':
-                        c = '\t';
-                        break;
-                    case 'u':
-                        if (i >= length) {
-                            make('phrase', str).error("Unterminated string");
-                        }
-                        c = parseInt(this.substr(i + 1, 4), 16);
-                        if (!isFinite(c) || c < 0) {
-                            make('phrase', str).error("Unterminated string");
-                        }
-                        c = String.fromCharCode(c);
-                        i += 4;
-                        break;
-                    }
-                }
-                str += c;
-                i += 1;
-            }
-            i += 1;
-            result.push(make('phrase', str));
-            c = this.charAt(i);
-
-// comment.
-
-        } else if (c === '/' && this.charAt(i + 1) === '/') {
-            i += 1;
-            for (;;) {
-                c = this.charAt(i);
-                if (c === '\n' || c === '\r' || c === '') {
-                    break;
-                }
-                i += 1;
-            }
-
-// combining
-
-        } else if (prefix.indexOf(c) >= 0) {
-            str = c;
-            i += 1;
-            while (true) {
-                c = this.charAt(i);
-                if (i >= length || suffix.indexOf(c) < 0) {
-                    break;
-                }
-                str += c;
-                i += 1;
-            }
-            result.push(make('operator', str));
-
-// single-character operator
-
-        } else {
-            i += 1;
-            result.push(make('operator', c));
-            c = this.charAt(i);
-        }
-    }
-    return result;
-};
-
-
-
 var ObjectIndex = (function(){
   
   // poorman's is-array test
   var isArray = function(o){
     return o.constructor == Array;
+  };
+  
+  var isNumber = function(v){
+    if(typeof v == 'number' && (v>0 || v<0 || v===0))
+      return true;    
   };
   
   var Index = function(config){
@@ -282,16 +39,35 @@ var ObjectIndex = (function(){
 
   // return a filter function that will do an exact match on the
   // property value
-  Index.prototype.propertyFilter = function(key, token){
+  Index.prototype.propertyFilter = function(key, keyword){
     var self = this;
     return function(record){
       var value = self.getRecordValue(record,key);
-      if(value && isArray(value)){ 
-        return value.indexOf(token.value)>=0;
-      }else if(token.type=="number"){
-        return value===token.value;
+      if(!value)
+        return false;
+      if(isArray(value)){ 
+        if(value.length===0)
+          return false;
+        // cast keyword to number if array is numeric
+        if(isNumber(value[0]))
+          keyword = parseInt(keyword,10);
+        return value.indexOf(keyword)>=0;
+      // if we're comaring a number the convert
+      }else if(isNumber(value)){
+        return value===parseInt(keyword,10);
+      // if it's a date we're comaring against parse Date
+      }else if(value.getTime || keyword[0]=="["){
+        var d1,d2,dateStrings = keyword.slice(1,keyword.length-1).split('TO');
+        // if only one date, then it is a "from 0 TO X" search
+        if(dateStrings.length==1 || !dateStrings[0])
+          d1 = new Date('1970-01-01');
+        else
+          d1 = new Date(dateStrings[0]);
+        d2 = new Date(dateStrings[1]);
+        return value > d1 && value < d2;
+      // otherwise treat as a free text search
       }else{
-        var matcher = new RegExp(token.value,'i');
+        var matcher = new RegExp(keyword,'i');
         return matcher.test(value);
       }
     };
@@ -326,42 +102,41 @@ var ObjectIndex = (function(){
     };
   };
   
+  Index.prototype.filterMatchers = [
+    {matcher: /^(\w+):(\w+|"[^"]+"|\[[^\]]+\])/, name:'propertyFilter'},
+    {matcher: /^(\w+)/, name:'phraseFilter'}
+  ];
+  
+  Index.prototype.consumeBuffer = function(buffer,fns){
+    var match;
+    for(var i=0; i<this.filterMatchers.length; i++){
+      match = buffer.match(this.filterMatchers[i].matcher);
+      if(!match)
+        continue;
+      // found a match so removed the consumed part of the buffer
+      buffer = buffer.slice(match[0].length);
+      // and add the filter fn
+      fns.push(
+        this[this.filterMatchers[i].name].apply(this, match.slice(1))
+      );
+      // and return
+      return buffer;
+    }
+    // nothing consumed.
+    // assume the first character is junk, eat it and continue
+    return buffer.slice(1);
+  };
+  
   // transform the search query string q into a
   // filter function to be run against each record
   Index.prototype.compileQuery = function(q){
-    var fn,fns = [],
-        tokens = q.tokens();
-    // is the token at index i a label for
-    // a property filter like: 
-    // color:red
-    // someProperty: green
-    var isPropertyFilter = function(i){
-      return (tokens[i].type=="keyword" || tokens[i].type=="phrase") &&
-        tokens[i+1] && 
-        tokens[i+1].type=="operator" && tokens[i+1].value==":" &&
-        tokens[i+2] &&
-        (tokens[i+2].type=="keyword" || tokens[i+2].type=="phrase" || tokens[i+2].type=="number");
-    };
-    // is the token at index i a generic search term
-    var isPhrase = function(){
-      return tokens[i].type=="keyword" || 
-        tokens[i].type=="phrase" || 
-        tokens[i].type=="number";
-    };
-    // create a list of functions that will each be
-    // run against each record to form an AND chain
-    for (var i=0; i < tokens.length; i++) {
-      if(isPropertyFilter(i)){
-        fn = this.propertyFilter(tokens[i].value, tokens[i+2]);
-        i += 2; // move past already consumed items
-      }else if(isPhrase(i)){
-        fn = this.phraseFilter(tokens[i].value.toString());
-      }
-      fns.push(fn);
+    var m,fn,fns = [];
+    var buffer = q;
+    while(buffer.length>0){
+        buffer = this.consumeBuffer(buffer,fns);
     }
     // combine all the fns into a single AND function
     return this.andFilter(fns);
-    
   };
   
   // loop over each record passing it to fn

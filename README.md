@@ -74,8 +74,8 @@ So far we have just queried on string data, but you can also query against numer
 ```javascript
 
 var data = [
-  {id: 1, name:'Banana', tags:['yellow','bendy]},
-  {id: 2, name:'Apple', tags:['green','round]}
+  {id: 1, name:'Banana', tags:['yellow','bendy']},
+  {id: 2, name:'Apple', tags:['green','round']}
 ];
 
 var index = new ObjectIndex({

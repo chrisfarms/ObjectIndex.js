@@ -54,6 +54,8 @@
     <div id="status"></div>
     <div id="output"></div>
     
+    <button onclick="noiseTest(); this.disabled='disabled'">Start performance test</button>
+    
     <script src="objectindex.js"></script>
     <script>
       
@@ -84,48 +86,75 @@
       function status(msg){
         document.getElementById('status').innerHTML = msg;
       }
+      function mkdate(datestr){
+        var d=new Date(); 
+        d.setTime(Date.parse(datestr)); 
+        return d;
+      }
+      // some dates to use
+      var midjan = mkdate('2011-01-14');
+      var midfeb = mkdate('2011-02-14');
+      var midmarch = mkdate('2011-03-14');
       // simple tests
       function basicTest(records){
           var results, index;
 
           index = new ObjectIndex({
             records: records,
-            fields: ['name','content','someProperty', 'someOtherProperty', 'colors', 'number']
+            fields: ['name','content','someProperty', 'colors', 'number', 'created']
           });
 
-
+          // general text search
+          status("text search");
           results = index.query('wolverine');
           assertContents(results,[records[0],records[1]]);
-            
+          
+          // prop only  
+          status("prop");
           results = index.query('colors:red');
           assertContents(results,[records[0],records[2]]);
           
+          // general + property filter
+          status("general + prop");
           results = index.query('colors:red wolverine');
           assertContents(results,[records[0]]);
-          
           results = index.query('colors:itchybeard wolverine');
           assertContents(results,[]);
           
+          // junk test
+          status("junk");
           results = index.query('oiwhegohiw ewgoihgi');
           assertContents(results,[]);
           
+          // single prop
+          status("single prop");
           results = index.query('someProperty:important');
           assertContents(results,[records[1]]);
           
+          // numeric tests
+          status("numeric tests");
           results = index.query('number:1');
           assertContents(results,[]);
-          
           results = index.query('number:123');
           assertContents(results,[records[1]]);
           
+          // name field only
+          status("name only test");
           results = index.query('name:thing1');
           assertContents(results,[records[1]]);
+          
+          // date test
+          status("date test");
+          results = index.query('created:[TO 2011-02-01]');
+          assertContents(results,[records[0]]);
+          
+          status("basic tests passed ok");
       }
       // test data
       var data = [
-        {name:'thing0', content:'wolverine', someProperty: 'zzz', colors: ['red', 'blue']},
-        {name:'thing1', content:'wolverine prfessorX', someProperty: 'this is important', number: 123, colors: ['green']},
-        {name:'thing2', content:'gambit', someOtherProperty: 'important info here too', colors: ['red', 'green', 'yellow']}
+        {name:'thing0', content:'wolverine', someProperty: 'zzz', colors: ['red', 'blue'], created:midjan},
+        {name:'thing1', content:'wolverine prfessorX', someProperty: 'this is important', number: 123, colors: ['green'], created:midfeb},
+        {name:'thing2', content:'gambit', colors: ['red', 'green', 'yellow'], created:midmarch}
       ];
       // run basic test
       basicTest(data);
@@ -134,7 +163,7 @@
         // run the basicTest with an extra million
         // records in the list to see how badly it performs
         // with the extra noise
-        var fields = ['name','content','someProperty', 'someOtherProperty', 'colors'];
+        var fields = ['name','content','someProperty', 'colors'];
         var generateRandomWord = function(){
           var w = Math.round(Math.random()*100000000).toString(36);
           return w.length<4 ? "" : w;
@@ -198,8 +227,6 @@
         
         runTestAndPlotGraph();
       }
-      // run the noise test
-      noiseTest();
 
     </script>
   </body>
