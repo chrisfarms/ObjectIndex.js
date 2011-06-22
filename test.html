@@ -101,7 +101,7 @@
 
           index = new ObjectIndex({
             records: records,
-            fields: ['name','content','someProperty', 'colors', 'number', 'created']
+            fields: ['name','content','someProperty', 'colors', 'number', 'created', 'price']
           });
 
           // general text search
@@ -145,6 +145,13 @@
           results = index.query('number:[1 TO 100]');
           assertContents(results,[]);
           
+          status("float test 1");
+          results = index.query('price:[1.1 TO 1.5]');
+          assertContents(results,[records[2]]);
+          status("float test 2");
+          results = index.query('price:[1.24 TO 5]');
+          assertContents(results,[]);
+          
           // name field only
           status("name only test");
           results = index.query('name:thing1');
@@ -170,7 +177,7 @@
       var data = [
         {name:'thing0', content:'wolverine', someProperty: 'zzz', colors: ['red', 'blue'], created:midjan},
         {name:'thing1', content:'wolverine prfessorX', someProperty: 'this is important', number: 123, colors: ['green'], created:midfeb},
-        {name:'thing2', content:'gambit', colors: ['red', 'green', 'yellow'], created:midmarch}
+        {name:'thing2', content:'gambit', price: 1.23, colors: ['red', 'green', 'yellow'], created:midmarch}
       ];
       // run basic test
       basicTest(data);

@@ -49,7 +49,7 @@ var ObjectIndex = (function(){
       if(isArray(value)){ 
         if(value.length===0)
           return false;
-        // cast keyword to number if array is numeric
+        // cast keyword to int if array is numeric
         if(isNumber(value[0]))
           keyword = parseInt(keyword,10);
         return value.indexOf(keyword)>=0;
@@ -62,12 +62,12 @@ var ObjectIndex = (function(){
           if(rangeStrings.length==1 || !rangeStrings[0])
             d1 = 0;
           else
-            d1 = parseInt(rangeStrings[0],10);
-          d2 = parseInt(rangeStrings[1],10);
+            d1 = parseFloat(rangeStrings[0],10);
+          d2 = parseFloat(rangeStrings[1],10);
           return value >= d1 && value <= d2;
         // exact match
         }else{
-          return value===parseInt(keyword,10);  
+          return value===parseFloat(keyword,10);  
         }
       // if it's a date we're comaring against parse Date
       }else if(value.getTime){
