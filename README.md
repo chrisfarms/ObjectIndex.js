@@ -160,8 +160,6 @@ This version will not work in IE as I use `indexOf`, it would be a pretty minor 
 Licence & Author(s)
 -------------------
 
-MIT "do what you want" Licenced
-Written by Chris Farmiloe © 2011
-Tokenizer code based on a version written by Douglas Crockford © 2006
+Chris Farmiloe © 2011
 
-
+MIT Licensed
